@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.uni.easygate">
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application
+        android:name="com.activeandroid.app.Application"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <meta-data
+            android:name="AA_DB_NAME"
+            android:value="easy_gate_37" />
+        <meta-data
+            android:name="AA_DB_VERSION"
+            android:value="37" />
+        <meta-data
+            android:name="AA_MODELS"
+            android:value="com.uni.easygate.models.Event,com.uni.easygate.models.Exit,com.uni.easygate.models.GPSLog ,
+            com.uni.easygate.models.Role, com.uni.easygate.models.Tank, com.uni.easygate.models.User, 
+            com.uni.easygate.models.Truck, com.uni.easygate.models.Activity, com.uni.easygate.models.Comment" />
+
+        <activity
+            android:name="com.uni.easygate.ui.MainActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
+        <activity android:name="com.uni.easygate.ui.LoginActivity"/>
+
+
+        <activity android:name="com.uni.easygate.ui.SplashScreen">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="71fd2f627f38f295b0d9c608302c1dcf474be462" />
+    </application>
+
+</manifest>
