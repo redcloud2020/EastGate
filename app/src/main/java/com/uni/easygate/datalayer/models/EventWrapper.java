@@ -10,8 +10,8 @@ import java.util.ArrayList;
  */
 
 public class EventWrapper implements Parcelable {
-    private ArrayList<Event> CampEntrance;
-    private ArrayList<Exit> CampExit;
+    public ArrayList<Event> CampEntrance;
+    public ArrayList<Exit> CampExit;
 
     public EventWrapper(ArrayList<Event> campEntrance, ArrayList<Exit> campExit) {
         CampEntrance = campEntrance;

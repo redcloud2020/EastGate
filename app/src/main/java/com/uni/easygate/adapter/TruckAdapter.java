@@ -33,7 +33,7 @@ public class TruckAdapter extends RecyclerView.Adapter<TruckAdapter.ViewHolder> 
     final  Drawable arrowUpGrey;
     final  Drawable arrowDownBlack;
     final  Drawable arrowUpBlack;
-    private EventWrapper myChildren;
+    public EventWrapper myChildren;
     private Context context;
     ArrayList<User> myUsers;
     ArrayList<Truck> myTrucks;

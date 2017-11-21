@@ -182,15 +182,19 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
 
         ArrayList<User> myUsers = new ArrayList<>();
         if(data!=null && data.getCampEntrance()!=null && !data.getCampEntrance().isEmpty())
-        for(int i =0; i<data.getCampEntrance().size(); i++){
-            User user = User.getUserById(data.getCampEntrance().get(i).getDriver_user_Id());
-            myUsers.add(user);
-        }
+            for(int i =0; i<data.getCampEntrance().size(); i++){
+                User user = User.getUserById(data.getCampEntrance().get(i).getDriver_user_Id());
+                if(user == null)
+                myUsers.add(user);
+            }
+
         if(data!=null && data.getCampExit()!=null && !data.getCampExit().isEmpty())
             for(int i =0; i<data.getCampExit().size(); i++){
-            User user = User.getUserById(data.getCampExit().get(i).getDriver_user_Id());
-            myUsers.add(user);
-        }
+                User user = User.getUserById(data.getCampExit().get(i).getDriver_user_Id());
+                if(user == null)
+                myUsers.add(user);
+            }
+
         ArrayList<Truck> myTrucks = new ArrayList<>();
         if(data!=null && data.getCampEntrance()!=null && !data.getCampEntrance().isEmpty())
             for(int i =0; i<data.getCampEntrance().size(); i++){
@@ -244,7 +248,7 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
 
         if(data!=null && data.getCampEntrance()!=null && !data.getCampEntrance().isEmpty()) {
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-            TruckAdapter truckAdapter = new TruckAdapter(getActivity(), data, myUsers, myTrucks);
+            final TruckAdapter truckAdapter = new TruckAdapter(getActivity(), data, myUsers, myTrucks);
             recyclerView.setAdapter(truckAdapter);
             recyclerView.setLayoutManager(linearLayoutManager);
             truckAdapter.setOnLongClick(new TruckAdapter.onLongClick() {
@@ -262,7 +266,7 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
                 public void OnClick(Event event, Exit exit, Truck truck, User user) {
                     FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                     fragmentManager.beginTransaction().add(R.id.content_layout, ExitTruckFragment.newInstance(
-                            event, truck, user, exit
+                            event, truck, user, exit, truckAdapter.myChildren
                             ), ExitTruckFragment.class.getSimpleName()
                     ).addToBackStack(ExitTruckFragment.class.getSimpleName()).commitAllowingStateLoss();
                 }
@@ -398,7 +402,7 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
         header.setText(Html.fromHtml("<b>"+getString(R.string.inside_camp)+":</b> "+size+"&#160;"+"<b>"+getString(R.string.outside)+":</b> "+
         data.getCampExit().size()));
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
-        TruckAdapter truckAdapter = new TruckAdapter(getActivity(), data, myUsers, myTrucks);
+        final TruckAdapter truckAdapter = new TruckAdapter(getActivity(), data, myUsers, myTrucks);
         recyclerView.setAdapter(truckAdapter);
         recyclerView.setLayoutManager(linearLayoutManager);
 
@@ -407,7 +411,7 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
             public void OnClick(Event event, Exit exit, Truck truck, User user) {
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                 fragmentManager.beginTransaction().add(R.id.content_layout, ExitTruckFragment.newInstance(
-                        event, truck, user, exit
+                        event, truck, user, exit, truckAdapter.myChildren
                 ), ExitTruckFragment.class.getSimpleName()
                 ).addToBackStack(ExitTruckFragment.class.getSimpleName()).commitAllowingStateLoss();
             }

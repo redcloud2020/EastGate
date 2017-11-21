@@ -88,4 +88,9 @@
     <string name="volume_exceeded">الرجاء التأكد من سعة الصهريج</string>
     <string name="data_not_saved">هل تريد العودة الى الجدول بدون اجراء تعديلات؟</string>
     <string name="proceed">تابع</string>
+
+    <string name="next"> التالي ← </string>
+    <string name="prev"> → السابق </string>
+    <string name="m3">م</string>
+
 </resources>

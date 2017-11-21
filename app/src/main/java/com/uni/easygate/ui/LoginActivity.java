@@ -22,6 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.activeandroid.ActiveAndroid;
+import com.activeandroid.query.Delete;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -44,16 +45,19 @@ import com.uni.easygate.datalayer.server.RequestDataProvider;
 import com.uni.easygate.datalayer.server.RequestModel;
 import com.uni.easygate.datalayer.server.ServerResponseHandler;
 import com.uni.easygate.security.SecurePreferences;
+import com.uni.easygate.utilities.Logger;
 import com.uni.easygate.utilities.Methods;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by sammy on 2/28/2017.
@@ -77,6 +81,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private List<Event> measureLog;
     private List<Comment> commentLog;
     private ImageView rotate;
+    private ImageView logs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,13 +92,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         userNumberEt = (EditText) findViewById(R.id.user_number_edit_text);
         passwordEt = (EditText) findViewById(R.id.password_edit_text);
         rotate = (ImageView) findViewById(R.id.rotate);
+        logs = (ImageView) findViewById(R.id.logs);
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setVisibility(View.GONE);
 
         login = (Button) findViewById(R.id.login);
         rotate.bringToFront();
+        logs.bringToFront();
         login.setOnClickListener(this);
+        logs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                progressBar.setVisibility(View.VISIBLE);
+                upload_logs();
+                progressBar.setVisibility(View.GONE);
+            }
+        });
         rotate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -140,17 +155,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     if (!TextUtils.isEmpty(userNumber)) {
                         if (Methods.isAutomaticTimeEnabled(LoginActivity.this)) {
                             try {
-                                if (isNetworkAvailable())
+                                if (isNetworkAvailable()) {
                                     if (TextUtils.isEmpty(SecurePreferences.getInstance(this).getString(Parameters.FIRST_TIME)))
                                         getUsers(userNumber, Methods.md5(password), Parameters.DUMMY_TIMESTAMP);
                                     else {
                                         User lastUser = User.getOldDate();
-                                        if(lastUser!=null && lastUser.getUpdated_at()!=null)
-                                        getUsers(userNumber, Methods.md5(password), lastUser.getUpdated_at());
+                                        if (lastUser != null && lastUser.getUpdated_at() != null)
+                                            getUsers(userNumber, Methods.md5(password), Parameters.DUMMY_TIMESTAMP);
                                         else
-                                        getUsers(userNumber, Methods.md5(password),Parameters.DUMMY_TIMESTAMP);
+                                            getUsers(userNumber, Methods.md5(password), Parameters.DUMMY_TIMESTAMP);
                                     }
-                                else proceedToLogin();
+                                } else proceedToLogin();
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             } catch (UnsupportedEncodingException e) {
@@ -163,6 +178,28 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 break;
         }
+    }
+
+    private void upload_logs() {
+        Logger logger = Logger.getInstance(getApplicationContext());
+
+        logger.upload_logs();
+
+        try {
+            if(!logger.finished) {
+                TimeUnit.SECONDS.sleep(1);
+            }
+        } catch (Exception e) {}
+
+
+        if(!logger.logs_found) {
+            Toast.makeText(this, "No logs to upload!", Toast.LENGTH_LONG).show();
+        } else if(logger.failed_logs != 0) {
+            Toast.makeText(this, "Some logs failed to upload!", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "Logs successfully uploaded!", Toast.LENGTH_LONG).show();
+        }
+
     }
 
     private void proceedToLogin() {
@@ -333,38 +370,34 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             @Override
             public void onStart() {
+
                 super.onStart();
             }
+
 
             @Override
             public void onConnectivityError(String message) {
                 proceedToLogin();
-
                 progressBar.setVisibility(View.GONE);
-
             }
 
             @Override
             public void onDataError(String message) {
                 setError(message);
                 progressBar.setVisibility(View.GONE);
-
             }
 
             @Override
             public void onServerFailure(String message) {
                 setError(message);
                 progressBar.setVisibility(View.GONE);
-
             }
-
 
             @Override
             public void onServerSuccess(UserWrapperModel data) {
                 if (data != null) {
                     insertUsers(data, username, password, timestamp);
                 }
-
             }
 
             @Override
@@ -381,6 +414,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void insertUsers(UserWrapperModel data, String userNumber, String password, String timestamp) {
 
         ActiveAndroid.beginTransaction();
+        try {
+            new Delete().from(User.class).where("User_Id = %").execute();
+        } catch (Exception e) {}
         try {
             for (int i = 0; i < data.getNewUpdatedData().size(); i++) {
                 User user = new User(data.getNewUpdatedData().get(i).getUser_Id(), data.getNewUpdatedData().get(i).getFirst_name_ar()
@@ -399,20 +435,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             ActiveAndroid.endTransaction();
         }
 
-
-        if (data.getDeletedData() != null && !data.getDeletedData().isEmpty()) {
-
-            ActiveAndroid.beginTransaction();
-            try {
-                for (int i = 0; i < data.getDeletedData().size(); i++) {
-                    User.delete(User.class, data.getDeletedData().get(i).getId());
-                }
-
-                ActiveAndroid.setTransactionSuccessful();
-            } finally {
-                ActiveAndroid.endTransaction();
-            }
-        }
         if (TextUtils.isEmpty(SecurePreferences.getInstance(this).getString(Parameters.FIRST_TIME)))
             try {
                 getTrucks(userNumber, password, Parameters.DUMMY_TIMESTAMP);
@@ -534,6 +556,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         ActiveAndroid.beginTransaction();
         try {
+            new Delete().from(Destination.class).execute();
+        } catch (Exception e) {}
+        try {
             for (int i = 0; i < data.getNewUpdatedData().size(); i++) {
                 Destination destination = new Destination(data.getNewUpdatedData().get(i).getDestination_Id(), data.getNewUpdatedData().get(i).getDestination_ar()
                         , data.getNewUpdatedData().get(i).getDestination_en(), data.getNewUpdatedData().get(i).getAr_short()
@@ -545,19 +570,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             ActiveAndroid.setTransactionSuccessful();
         } finally {
             ActiveAndroid.endTransaction();
-        }
-        if (data.getDeletedData() != null && !data.getDeletedData().isEmpty()) {
-
-            ActiveAndroid.beginTransaction();
-            try {
-                for (int i = 0; i < data.getDeletedData().size(); i++) {
-                    Destination.delete(Tank.class, data.getDeletedData().get(i).getId());
-                }
-
-                ActiveAndroid.setTransactionSuccessful();
-            } finally {
-                ActiveAndroid.endTransaction();
-            }
         }
 
         proceedToLogin();
@@ -776,6 +788,29 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     Event.delete(Event.class, eventId.get(i).getId());
                 }
                 List<Exit> exits = Exit.getAll();
+
+                // due to a bug in Samy's code, sometimes the user time and the payment voucher
+                // number are not added. If this is the case, add them.
+                ActiveAndroid.beginTransaction();
+                for(int i = 0; i < exits.size(); i++) {
+                    Exit e = exits.get(i);
+                    boolean modified = false; // to avoid db operations for unaffected rows.
+
+                    if(e.getTime_user() == null) {
+                        e.setTime_user(e.getTimestamp());
+                        modified = true;
+                    }
+
+                    if(e.getPayment_voucher_number() == null) {
+                        e.setPayment_voucher_number("");
+                        modified = true;
+                    }
+
+                    if(modified) e.save();
+                }
+                ActiveAndroid.setTransactionSuccessful();
+                ActiveAndroid.endTransaction();
+
                 Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
                 String listString = gson.toJson(
                         exits,
@@ -863,6 +898,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         ActiveAndroid.beginTransaction();
         try {
+            new Delete().from(Truck.class).execute();
+        } catch (Exception e) {}
+        try {
             for (int i = 0; i < data.getNewUpdatedData().size(); i++) {
                 Truck truck = new Truck(data.getNewUpdatedData().get(i).getTruck_Id(), data.getNewUpdatedData().get(i).getTruck_number()
                         , data.getNewUpdatedData().get(i).getEmployer_Id(), data.getNewUpdatedData().get(i).getGreen_plate_number(),
@@ -876,19 +914,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             ActiveAndroid.setTransactionSuccessful();
         } finally {
             ActiveAndroid.endTransaction();
-        }
-        if (data.getDeletedData() != null && !data.getDeletedData().isEmpty()) {
-
-            ActiveAndroid.beginTransaction();
-            try {
-                for (int i = 0; i < data.getDeletedData().size(); i++) {
-                    Truck.delete(Truck.class, data.getDeletedData().get(i).getId());
-                }
-
-                ActiveAndroid.setTransactionSuccessful();
-            } finally {
-                ActiveAndroid.endTransaction();
-            }
         }
         if (TextUtils.isEmpty(SecurePreferences.getInstance(this).getString(Parameters.FIRST_TIME)))
             try {

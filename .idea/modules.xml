@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/EasyGate.iml" filepath="$PROJECT_DIR$/EasyGate.iml" />
+      <module fileurl="file://$PROJECT_DIR$/EastGate.iml" filepath="$PROJECT_DIR$/EastGate.iml" />
+      <module fileurl="file://C:\Programming\Freelance\UFOWApp\EastGate\EasyGate.iml" filepath="C:\Programming\Freelance\UFOWApp\EastGate\EasyGate.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

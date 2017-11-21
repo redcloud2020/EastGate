@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ContextThemeWrapper;
@@ -36,6 +37,7 @@ import com.uni.easygate.config.Parameters;
 import com.uni.easygate.datalayer.models.Comment;
 import com.uni.easygate.datalayer.models.Destination;
 import com.uni.easygate.datalayer.models.Event;
+import com.uni.easygate.datalayer.models.EventWrapper;
 import com.uni.easygate.datalayer.models.Exit;
 import com.uni.easygate.datalayer.models.Truck;
 import com.uni.easygate.datalayer.models.User;
@@ -47,6 +49,7 @@ import com.uni.easygate.datalayer.server.RequestModel;
 import com.uni.easygate.datalayer.server.ServerResponseHandler;
 import com.uni.easygate.security.SecurePreferences;
 import com.uni.easygate.ui.MainActivity;
+import com.uni.easygate.utilities.Logger;
 import com.uni.easygate.utilities.Methods;
 
 import org.json.JSONArray;
@@ -59,6 +62,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
+
+import static com.loopj.android.http.AsyncHttpClient.log;
 
 /**
  * Created by sammy on 4/6/2017.
@@ -127,13 +132,18 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
 
     private boolean firstSelectedPicker = true;
     private String oldCom = "";
-    public static ExitTruckFragment newInstance(Event event, Truck truck, User user, Exit exit) {
+    private EventWrapper events;
+
+    private Logger logger;
+
+    public static ExitTruckFragment newInstance(Event event, Truck truck, User user, Exit exit, EventWrapper events) {
 
         Bundle args = new Bundle();
         args.putParcelable("Event", event);
         args.putParcelable("Truck", truck);
         args.putParcelable("User", user);
         args.putParcelable("Exit", exit);
+        args.putParcelable("Events", events);
         ExitTruckFragment fragment = new ExitTruckFragment();
         fragment.setArguments(args);
         return fragment;
@@ -166,6 +176,8 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
 //            }
 //        });
 
+        logger = Logger.getInstance(getContext());
+
         truckNumber = (Spinner) layout.findViewById(R.id.truck_number);
         driverNumber = (EditText) layout.findViewById(R.id.driver_number);
         voucherNumber = (EditText) layout.findViewById(R.id.voucher_number);
@@ -190,10 +202,12 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
         if (!clicked)
             save.setOnClickListener(this);
 
+        layout.findViewById(R.id.next).setOnClickListener(this);
+        layout.findViewById(R.id.prev).setOnClickListener(this);
+
 
         if (getArguments() != null) {
-//            truck = getArguments().getParcelable("Truck");
-//            user = getArguments().getParcelable("User");
+            events = getArguments().getParcelable("Events");
             event = getArguments().getParcelable("Event");
             List<Exit> exits = Exit.getAll();
             if (exits != null && !exits.isEmpty())
@@ -203,6 +217,13 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
                             exit = exits.get(i);
                 }
 
+            logger.write_line("Read for entry with id " + event.getId() + " at time: " + Methods.getCurrentTimeStampApi().toString());
+            if(exit != null){
+                logger.write_line("Exit id: " + exit.getId());
+                logger.write_line("Exit Voucher Number: " + exit.getEntryExit_voucher_number());
+                logger.write_line("Payment Voucher Number: " + exit.getPayment_voucher_number());
+            } else {
+            }
 
             final List<Truck> truckList = Truck.getAll();
 
@@ -341,9 +362,24 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
 
                 voucherNumber.setText(event.getEntryExit_voucher_number());
             }
-
-
         }
+
+        if(event != null) {
+            int event_pos = positions_in_wrapper();
+            if(event_pos == events.CampEntrance.size() - 1)
+            {
+                layout.findViewById(R.id.next).setEnabled(false);
+                ((Button) layout.findViewById(R.id.next)).setTextColor(Color.GRAY);
+
+            }
+            if(event_pos == 0) {
+
+                layout.findViewById(R.id.prev).setEnabled(false);
+                ((Button) layout.findViewById(R.id.prev)).setTextColor(Color.GRAY);
+
+            }
+        }
+
         destinations = Destination.getall();
         ArrayList<String> spinnerArray = new ArrayList<>();
         for (int i = 0; i < destinations.size(); i++) {
@@ -460,6 +496,7 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
                         if (akider && TextUtils.isEmpty(exitName.getText().toString()))
                             setError(getString(R.string.fill_akider));
                         else {
+                            String payment_voucher = exitName.getText().toString();
                             if (!TextUtils.isEmpty(driverNumberString) &&
                                     !TextUtils.isEmpty(truckNumberString) &&
                                     !TextUtils.isEmpty(voucherNumberString) &&
@@ -649,7 +686,7 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
                                         exits.setComment_Id(event.getComment_Id());
 
 
-                                    exits.setPayment_voucher_number(exitName.getText().toString());
+                                    exits.setPayment_voucher_number(payment_voucher);
                                     exits.setEntryExit_voucher_number(exitVoucher.getText().toString());
                                     exits.setEntrance_Id(event.getEvent_Id());
                                     exits.setTruck_volume(weight.getText().toString());
@@ -663,18 +700,28 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
                                     exits.setTime_user(Methods.getCurrentTimeStampApi());}
                                     exits.save();
 
+                                    logger.write_line("Save for entry with id " + exits.getEntrance_Id() + " at time: " + Methods.getCurrentTimeStampApi().toString());
+                                    logger.write_line("Exit id: " + exits.getId());
+                                    logger.write_line("Exit Voucher Number: " + exits.getEntryExit_voucher_number());
+                                    logger.write_line("Payment Voucher Number: " + exits.getPayment_voucher_number());
+                                    logger.write_line("TextView value: " + payment_voucher);
+                                    logger.write_line("\n\n");
+
                                     JSONArray commentArray = new JSONArray();
                                     commentArray.put(commentObject);
 
-                                    if (isNetworkAvailable())
+                                    if (isNetworkAvailable()) {
                                         try {
                                             addComment(jsonArray, eventId, commentArray, event.getComment_Id(), myNewEntranceArray);
+                                            commentArray = new JSONArray();
+                                            commentArray.put(event);
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         } catch (UnsupportedEncodingException e) {
                                             e.printStackTrace();
                                         }
-                                    else {
+                                    } else {
+                                        Toast.makeText(getActivity(), "لا يوجد شبكة، لم تحمل المعلومات", Toast.LENGTH_LONG).show();
                                         Intent intent = new Intent(getActivity(), MainActivity.class);
                                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -689,6 +736,40 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
                         }
                 } else ((MainActivity) getActivity()).displayAutomaticTimeEnable();
                 break;
+            case R.id.next:
+                int next_pos = positions_in_wrapper() + 1;
+                log.d("emad-d", String.valueOf(next_pos));
+
+                if(next_pos < events.CampEntrance.size()) {
+                    log.d("emad-d", "in");
+                    Event next_event = events.CampEntrance.get(next_pos);
+                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                    fragmentManager.popBackStack(ExitTruckFragment.class.getSimpleName(),
+                            FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    fragmentManager.beginTransaction().add(R.id.content_layout, ExitTruckFragment.newInstance(
+                            next_event, null, null, null, events
+                            ), ExitTruckFragment.class.getSimpleName()
+                    ).addToBackStack(ExitTruckFragment.class.getSimpleName()).commitAllowingStateLoss();
+                }
+
+                break;
+
+            case R.id.prev:
+                int prev_pos = positions_in_wrapper() - 1;
+                if(prev_pos >= 0) {
+                    Event prev_event = events.CampEntrance.get(prev_pos);
+                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                    fragmentManager.popBackStack(ExitTruckFragment.class.getSimpleName(),
+                            FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    fragmentManager.beginTransaction().add(R.id.content_layout, ExitTruckFragment.newInstance(
+                            prev_event, null, null, null, events
+                            ), ExitTruckFragment.class.getSimpleName()
+                    ).addToBackStack(ExitTruckFragment.class.getSimpleName()).commitAllowingStateLoss();
+                }
+
+                break;
+
+
             default:
                 break;
         }
@@ -710,6 +791,15 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
                 });
         final AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    private int positions_in_wrapper() {
+        for(int i = 0; i < events.CampEntrance.size(); i++) {
+            if(events.CampEntrance.get(i).getId() == event.getId()) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private boolean isNetworkAvailable() {
@@ -893,6 +983,9 @@ public class ExitTruckFragment extends Fragment implements View.OnClickListener,
 
 
                 if (getActivity() != null) {
+
+                    Toast.makeText(getActivity(), "تم تحميل المعلومات", Toast.LENGTH_LONG).show();
+
                     Intent intent = new Intent(getActivity(), MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

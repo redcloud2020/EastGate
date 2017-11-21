@@ -42,6 +42,7 @@ import com.uni.easygate.fragment.ExitTruckFragment;
 import com.uni.easygate.fragment.ProfileFragment;
 import com.uni.easygate.fragment.TruckEntryExitFragment;
 import com.uni.easygate.security.SecurePreferences;
+import com.uni.easygate.utilities.Logger;
 import com.uni.easygate.utilities.Methods;
 
 import org.json.JSONArray;
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean added = false;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void   onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
@@ -185,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     public void onClick(DialogInterface dialog, int id) {
                         activityLog = Activity.getAll();
                         Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-                        String listString = gson.toJson(
+                        String listString =  gson.toJson(
                                 activityLog,
                                 new TypeToken<ArrayList<Activity>>() {
                                 }.getType());
@@ -204,6 +205,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();
                         }
+
+                        Logger.getInstance(getApplicationContext()).end_logging();
 
                     }
                 })
@@ -412,6 +415,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Event.delete(Event.class, eventId.get(i).getId());
                 }
                 List<Exit> exits = Exit.getAll();
+
+                // due to a bug in Samy's code, sometimes the user time and the payment voucher
+                // number are not added. If this is the case, add them.
+                ActiveAndroid.beginTransaction();
+                for(int i = 0; i < exits.size(); i++) {
+                    Exit e = exits.get(i);
+                    boolean modified = false; // to avoid db operations for unaffected rows.
+
+                    if(e.getTime_user() == null) {
+                        e.setTime_user(e.getTimestamp());
+                        modified = true;
+                    }
+
+                    if(e.getPayment_voucher_number() == null) {
+                        e.setPayment_voucher_number("");
+                        modified = true;
+                    }
+
+                    if(modified) e.save();
+                }
+                ActiveAndroid.setTransactionSuccessful();
+                ActiveAndroid.endTransaction();
+
                 Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
                 String listString = gson.toJson(
                         exits,

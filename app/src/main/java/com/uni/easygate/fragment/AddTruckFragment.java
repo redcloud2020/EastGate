@@ -495,8 +495,7 @@ public class AddTruckFragment extends Fragment implements View.OnClickListener, 
                                             if (event != null && !edited) {
                                                 eventTime = event.getTimestamp();
                                                 eventUserTime = event.getTime_user();
-                                            }
-                                            else {
+                                            } else {
                                                 eventUserTime = Methods.getCurrentTimeStampApi();
                                                 if (!timeSet)
                                                     eventTime = Methods.getCurrentTimeStampApi();
@@ -524,15 +523,18 @@ public class AddTruckFragment extends Fragment implements View.OnClickListener, 
                                     JSONArray json = new JSONArray();
                                     json.put(commentObject);
 
-                                    if (isNetworkAvailable())
+                                    if (isNetworkAvailable()) {
                                         try {
                                             sendComment(json, jsonArray, commentstr, eventID);
+                                            json = new JSONArray();
+                                            json.put(event);
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         } catch (UnsupportedEncodingException e) {
                                             e.printStackTrace();
                                         }
-                                    else {
+                                    } else {
+                                        Toast.makeText(getActivity(), "لا يوجد شبكة، لم تحمل المعلومات", Toast.LENGTH_LONG).show();
                                         Intent intent = new Intent(getActivity(), MainActivity.class);
                                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -674,6 +676,7 @@ public class AddTruckFragment extends Fragment implements View.OnClickListener, 
             @Override
             public void onServerSuccess(UserWrapperModel data) {
 
+                Toast.makeText(getActivity(), "تم تحميل المعلومات", Toast.LENGTH_LONG).show();
 
                 Intent intent = new Intent(getActivity(), MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
