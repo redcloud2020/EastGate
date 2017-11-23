@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import com.uni.easygate.R;
@@ -30,7 +29,6 @@ public class SplashScreen extends AppCompatActivity {
 
 
     private void start() {
-        Log.e("hello",SecurePreferences.getInstance(this).getString(Parameters.LOGGED) );
         if (TextUtils.isEmpty(SecurePreferences.getInstance(this).getString(Parameters.LOGGED))) {
 
 

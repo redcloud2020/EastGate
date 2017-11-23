@@ -1,6 +1,5 @@
 package com.uni.easygate.datalayer.server;
 
-
 import com.loopj.android.http.JsonHttpResponseHandler;
 
 

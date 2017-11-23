@@ -1,7 +1,6 @@
 package com.uni.easygate.utilities;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -59,7 +58,6 @@ public class Logger {
             File file = new File(root, date + ".txt");
             writer = new FileOutputStream(file, true);
         } catch (Exception e) {
-            Log.e("emad", "COULD NOT CREATE FILE");
             e.printStackTrace();
 
         }
@@ -123,7 +121,6 @@ public class Logger {
 
     public void update_logs(final File root, final int index, final int max_index) {
 
-        Log.d("emad", "Now for index: " + String.valueOf(index));
 
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -1*index);
@@ -131,8 +128,6 @@ public class Logger {
         date_format.setTimeZone(cal.getTimeZone());
         String file_name = date_format.format(cal.getTime());
         final File file = new File(root, file_name + ".txt");
-
-        Log.d("emad", "The date: " + file_name);
 
         StringBuilder text = new StringBuilder();
 
@@ -153,8 +148,6 @@ public class Logger {
             StringRequest req = new StringRequest(Request.Method.POST, "http://deerail.com/add_emad_log", new Response.Listener<String>() {
                 @Override
                 public void onResponse(String resp) {
-                    Log.d("emad", "got response");
-                    Log.d("emad", "result: " + resp);
                     // OK! Delete the file
 
                     if("1".equals(resp.toString())) {
@@ -172,14 +165,12 @@ public class Logger {
             }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.d("emad", "got error");
                         failed_logs++;
                     }
 
             }) {
                 @Override
                 public Map<String, String> getParams() {
-                    Log.d("emad", "It asked for params.");
                     return params;
                 }
             };
@@ -190,7 +181,6 @@ public class Logger {
             update_logs(root, index+1, max_index);
         }
         catch (IOException e) {
-            Log.d("emad", "error caught!");
             if(index == max_index) {
                 finished = true;
                 in_use = false;
