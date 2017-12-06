@@ -56,7 +56,8 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
     private RecyclerView recyclerView;
     private Button add;
     private TextView header;
-    private int entranceCount =0;
+    private int entranceCount = 0;
+
     public static TruckEntryExitFragment newInstance(Event event) {
         TruckEntryExitFragment fragment = new TruckEntryExitFragment();
         Bundle b = new Bundle();
@@ -71,8 +72,8 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View layout = inflater.inflate(R.layout.fragment_truck_exit_entry, container, false);
-        if(getActivity()!=null)
-            ((MainActivity)getActivity()).setTitleToolbar("جدول الصهاريج");
+        if (getActivity() != null)
+            ((MainActivity) getActivity()).setTitleToolbar("جدول الصهاريج");
         recyclerView = (RecyclerView) layout.findViewById(R.id.recycler_view);
         add = (Button) layout.findViewById(R.id.add);
         header = (TextView) layout.findViewById(R.id.header);
@@ -84,14 +85,14 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if(isNetworkAvailable() && !TextUtils.isEmpty(SecurePreferences.getInstance(getActivity()).getString(Parameters.GET)))
-        try {
-            getTrucksEntered();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        if (isNetworkAvailable() && !TextUtils.isEmpty(SecurePreferences.getInstance(getActivity()).getString(Parameters.GET)))
+            try {
+                getTrucksEntered();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         else getStored();
     }
 
@@ -100,6 +101,7 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
         super.onViewCreated(view, savedInstanceState);
 
     }
+
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -108,10 +110,9 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
     }
 
 
-
     private void getTrucksEntered() throws JSONException, UnsupportedEncodingException {
-        if(getActivity()!=null)
-        ((MainActivity) getActivity()).progressBar.setVisibility(View.VISIBLE);
+        if (getActivity() != null)
+            ((MainActivity) getActivity()).progressBar.setVisibility(View.VISIBLE);
         myHttpClient = new MyHttpClient();
         RequestDataProvider requestDataProvider = new RequestDataProvider(getActivity());
         GetRequestModel requestModel = requestDataProvider.getRemainingTrucks(
@@ -131,23 +132,23 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
 
             @Override
             public void onConnectivityError(String message) {
-                if(getActivity()!=null)
-                ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
+                if (getActivity() != null)
+                    ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
 
                 getStored();
             }
 
             @Override
             public void onDataError(String message) {
-                if(getActivity()!=null)
-                ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
+                if (getActivity() != null)
+                    ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
 
             }
 
             @Override
             public void onServerFailure(String message) {
-                if(getActivity()!=null)
-                ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
+                if (getActivity() != null)
+                    ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
 
             }
 
@@ -155,10 +156,10 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
             @Override
             public void onServerSuccess(EventWrapper data) {
                 if (data != null) {
-                   insert(data);
-                }else {
-                    if(getActivity()!=null)
-                    ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
+                    insert(data);
+                } else {
+                    if (getActivity() != null)
+                        ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
                 }
 
             }
@@ -170,83 +171,82 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
         });
     }
 
-    private void getStored(){
-        ArrayList<Event> getAllEvents  = (ArrayList<Event>) Event.getAll();
-        ArrayList<Exit> getAllExited  = (ArrayList<Exit>) Exit.getAll();
+    private void getStored() {
+        ArrayList<Event> getAllEvents = (ArrayList<Event>) Event.getAll();
+        ArrayList<Exit> getAllExited = (ArrayList<Exit>) Exit.getAll();
         EventWrapper data = null;
-        if(getAllEvents!=null && !getAllEvents.isEmpty()) {
-             data = new EventWrapper(getAllEvents, getAllExited);
+        if (getAllEvents != null && !getAllEvents.isEmpty()) {
+            data = new EventWrapper(getAllEvents, getAllExited);
         }
-
 
 
         ArrayList<User> myUsers = new ArrayList<>();
-        if(data!=null && data.getCampEntrance()!=null && !data.getCampEntrance().isEmpty())
-            for(int i =0; i<data.getCampEntrance().size(); i++){
+        if (data != null && data.getCampEntrance() != null && !data.getCampEntrance().isEmpty())
+            for (int i = 0; i < data.getCampEntrance().size(); i++) {
                 User user = User.getUserById(data.getCampEntrance().get(i).getDriver_user_Id());
-                if(user == null)
-                myUsers.add(user);
+                if (user != null)
+                    myUsers.add(user);
             }
 
-        if(data!=null && data.getCampExit()!=null && !data.getCampExit().isEmpty())
-            for(int i =0; i<data.getCampExit().size(); i++){
+        if (data != null && data.getCampExit() != null && !data.getCampExit().isEmpty())
+            for (int i = 0; i < data.getCampExit().size(); i++) {
                 User user = User.getUserById(data.getCampExit().get(i).getDriver_user_Id());
-                if(user == null)
-                myUsers.add(user);
+                if (user != null)
+                    myUsers.add(user);
             }
 
         ArrayList<Truck> myTrucks = new ArrayList<>();
-        if(data!=null && data.getCampEntrance()!=null && !data.getCampEntrance().isEmpty())
-            for(int i =0; i<data.getCampEntrance().size(); i++){
-            Truck truck = Truck.getTruckById(data.getCampEntrance().get(i).getTruck_Id());
-                if(truck!=null)
-            myTrucks.add(truck);
-        }
-        if(data!=null && data.getCampExit()!=null && !data.getCampExit().isEmpty())
-            for(int i =0; i<data.getCampExit().size(); i++){
-            Truck truck = Truck.getTruckById(data.getCampExit().get(i).getTruck_Id());
-                if(truck!=null)
-            myTrucks.add(truck);
-        }
-        if(data!=null && data.getCampEntrance()!=null && !data.getCampEntrance().isEmpty())
-        for(int i =0; i<data.getCampEntrance().size();i++) {
-            for (int j = 0; j < data.getCampExit().size(); j++)
-                if (data.getCampEntrance().get(i).getEvent_Id().equals(data.getCampExit().get(j).getEntrance_Id())) {
-                    data.getCampEntrance().get(i).setExited(true);
-                    data.getCampEntrance().get(i).setExitTime(data.getCampExit().get(j).getTimestamp());
-                    break;
-                } else {
+        if (data != null && data.getCampEntrance() != null && !data.getCampEntrance().isEmpty())
+            for (int i = 0; i < data.getCampEntrance().size(); i++) {
+                Truck truck = Truck.getTruckById(data.getCampEntrance().get(i).getTruck_Id());
+                if (truck != null)
+                    myTrucks.add(truck);
+            }
+        if (data != null && data.getCampExit() != null && !data.getCampExit().isEmpty())
+            for (int i = 0; i < data.getCampExit().size(); i++) {
+                Truck truck = Truck.getTruckById(data.getCampExit().get(i).getTruck_Id());
+                if (truck != null)
+                    myTrucks.add(truck);
+            }
+        if (data != null && data.getCampEntrance() != null && !data.getCampEntrance().isEmpty())
+            for (int i = 0; i < data.getCampEntrance().size(); i++) {
+                for (int j = 0; j < data.getCampExit().size(); j++)
+                    if (data.getCampEntrance().get(i).getEvent_Id().equals(data.getCampExit().get(j).getEntrance_Id())) {
+                        data.getCampEntrance().get(i).setExited(true);
+                        data.getCampEntrance().get(i).setExitTime(data.getCampExit().get(j).getTimestamp());
+                        break;
+                    } else {
 
-                    data.getCampEntrance().get(i).setExited(false);
-                    data.getCampEntrance().get(i).setExitTime("0000-00-00 00:00:00");
+                        data.getCampEntrance().get(i).setExited(false);
+                        data.getCampEntrance().get(i).setExitTime("0000-00-00 00:00:00");
+                    }
+
+                for (int m = 0; m < myUsers.size(); m++) {
+                    if (data.getCampEntrance().get(i).getDriver_user_Id().equals(myUsers.get(m).getUser_Id()))
+                        data.getCampEntrance().get(i).setDriverName(myUsers.get(m).getFirst_name_ar() + " " + myUsers.get(m).getLast_name_ar());
+                    data.getCampEntrance().get(i).setDriverUserNumber(myUsers.get(m).getUsername() + "");
                 }
 
-            for(int m =0; m<myUsers.size(); m++){
-                if(data.getCampEntrance().get(i).getDriver_user_Id().equals(myUsers.get(m).getUser_Id()))
-                    data.getCampEntrance().get(i).setDriverName(myUsers.get(m).getFirst_name_ar()+" "+myUsers.get(m).getLast_name_ar());
-                data.getCampEntrance().get(i).setDriverUserNumber(myUsers.get(m).getUsername()+"");
-            }
+                for (int n = 0; n < myTrucks.size(); n++) {
+                    if (data.getCampEntrance().get(i).getTruck_Id().equals(myTrucks.get(n).getTruck_Id()))
+                        data.getCampEntrance().get(i).setTruckNumber(myTrucks.get(n).getTruck_number());
+                    data.getCampEntrance().get(i).setTruckTotalVolume(myTrucks.get(n).getTruck_total_capacity());
 
-            for(int n=0; n<myTrucks.size(); n++){
-                if(data.getCampEntrance().get(i).getTruck_Id().equals(myTrucks.get(n).getTruck_Id()))
-                    data.getCampEntrance().get(i).setTruckNumber(myTrucks.get(n).getTruck_number());
-                data.getCampEntrance().get(i).setTruckTotalVolume(myTrucks.get(n).getTruck_total_capacity());
-
+                }
             }
-        }
         int size = 0;
-        if(data!=null && data.getCampEntrance()!=null && !data.getCampEntrance().isEmpty()){
+        if (data != null && data.getCampEntrance() != null && !data.getCampEntrance().isEmpty()) {
             header.setText(Html.fromHtml("<b>" + getString(R.string.inside_camp) + ":</b> " + data.getCampEntrance().size() + " &#160;  " + "<b>" + getString(R.string.outside) + ":</b> " +
-                   "0"));
+                    "0"));
         }
-        if(data!=null && data.getCampEntrance()!=null && !data.getCampEntrance().isEmpty() &&
-                data.getCampExit()!=null && !data.getCampExit().isEmpty()) {
-             size = data.getCampEntrance().size() - data.getCampExit().size();
+        if (data != null && data.getCampEntrance() != null && !data.getCampEntrance().isEmpty() &&
+                data.getCampExit() != null && !data.getCampExit().isEmpty()) {
+            size = data.getCampEntrance().size() - data.getCampExit().size();
             header.setText(Html.fromHtml("<b>" + getString(R.string.inside_camp) + ":</b> " + size + " &#160;  " + "<b>" + getString(R.string.outside) + ":</b> " +
                     data.getCampExit().size()));
         }
 
-        if(data!=null && data.getCampEntrance()!=null && !data.getCampEntrance().isEmpty()) {
+        if (data != null && data.getCampEntrance() != null && !data.getCampEntrance().isEmpty()) {
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
             final TruckAdapter truckAdapter = new TruckAdapter(getActivity(), data, myUsers, myTrucks);
             recyclerView.setAdapter(truckAdapter);
@@ -273,11 +273,12 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
             });
             truckAdapter.sort();
         }
-        if(getActivity()!=null)
-        ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
+        if (getActivity() != null)
+            ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
 
     }
-    private void insert(EventWrapper newData){
+
+    private void insert(EventWrapper newData) {
 
 //        List<Event> entrance = Event.getAll();
 //        for(int i =0; i<entrance.size(); i++){
@@ -292,19 +293,19 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
         SecurePreferences.getInstance(getActivity()).put(Parameters.GET, "");
         ActiveAndroid.beginTransaction();
         try {
-            if(newData.getCampEntrance()!=null && !newData.getCampEntrance().isEmpty())
-            for(int i =0; i<newData.getCampEntrance().size(); i++) {
-                Event event = new Event(newData.getCampEntrance().get(i).getEvent_Id(),
-                        newData.getCampEntrance().get(i).getTimestamp(),newData.getCampEntrance().get(i).getDriver_user_Id(),
-                        newData.getCampEntrance().get(i).getTruck_Id(),
-                        newData.getCampEntrance().get(i).getController_user_Id(),
-                        newData.getCampEntrance().get(i).getEntryExit_voucher_number(),
-                        newData.getCampEntrance().get(i).getTruck_volume(),
-                        newData.getCampEntrance().get(i).getComment_Id(), "0000-00-00 00:00:00", false,
-                       "", "",
-                        "", "", "0", newData.getCampEntrance().get(i).getTime_user());
-                event.save();
-            }
+            if (newData.getCampEntrance() != null && !newData.getCampEntrance().isEmpty())
+                for (int i = 0; i < newData.getCampEntrance().size(); i++) {
+                    Event event = new Event(newData.getCampEntrance().get(i).getEvent_Id(),
+                            newData.getCampEntrance().get(i).getTimestamp(), newData.getCampEntrance().get(i).getDriver_user_Id(),
+                            newData.getCampEntrance().get(i).getTruck_Id(),
+                            newData.getCampEntrance().get(i).getController_user_Id(),
+                            newData.getCampEntrance().get(i).getEntryExit_voucher_number(),
+                            newData.getCampEntrance().get(i).getTruck_volume(),
+                            newData.getCampEntrance().get(i).getComment_Id(), "0000-00-00 00:00:00", false,
+                            "", "",
+                            "", "", "0", newData.getCampEntrance().get(i).getTime_user());
+                    event.save();
+                }
             ActiveAndroid.setTransactionSuccessful();
         } finally {
             ActiveAndroid.endTransaction();
@@ -313,8 +314,8 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
 
         ActiveAndroid.beginTransaction();
         try {
-            if(newData.getCampExit()!=null && !newData.getCampExit().isEmpty())
-                for(int i =0; i<newData.getCampExit().size(); i++) {
+            if (newData.getCampExit() != null && !newData.getCampExit().isEmpty())
+                for (int i = 0; i < newData.getCampExit().size(); i++) {
                     Exit exit = new Exit(newData.getCampExit().get(i).getEvent_Id(),
                             newData.getCampExit().get(i).getTimestamp(),
                             newData.getCampExit().get(i).getDriver_user_Id(),
@@ -323,7 +324,7 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
                             , newData.getCampExit().get(i).getTruck_Id(),
                             newData.getCampExit().get(i).getComment_Id(), newData.getCampExit().get(i).getPayment_voucher_number(),
                             newData.getCampExit().get(i).getEntryExit_voucher_number(),
-                            newData.getCampExit().get(i).getEntrance_Id(),newData.getCampExit().get(i).getTruck_volume(),
+                            newData.getCampExit().get(i).getEntrance_Id(), newData.getCampExit().get(i).getTruck_volume(),
                             "0", newData.getCampExit().get(i).getTime_user());
                     exit.save();
                 }
@@ -331,47 +332,49 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
         } finally {
             ActiveAndroid.endTransaction();
         }
-        if(getActivity()!=null)
-        ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
+        if (getActivity() != null)
+            ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
 
-        ArrayList<Event> getAllEvents  = (ArrayList<Event>) Event.getAll();
-        ArrayList<Exit> getAllExited  = (ArrayList<Exit>) Exit.getAll();
+        ArrayList<Event> getAllEvents = (ArrayList<Event>) Event.getAll();
+        ArrayList<Exit> getAllExited = (ArrayList<Exit>) Exit.getAll();
         EventWrapper data = null;
-        if(getAllEvents!=null && !getAllEvents.isEmpty()) {
+        if (getAllEvents != null && !getAllEvents.isEmpty()) {
             data = new EventWrapper(getAllEvents, getAllExited);
         }
 
         ArrayList<User> myUsers = new ArrayList<>();
-        for(int i =0; i<data.getCampEntrance().size(); i++){
+        for (int i = 0; i < data.getCampEntrance().size(); i++) {
             User user = User.getUserById(data.getCampEntrance().get(i).getDriver_user_Id());
-            myUsers.add(user);
+            if (user != null)
+                myUsers.add(user);
         }
-        for(int i =0; i<data.getCampExit().size(); i++){
+        for (int i = 0; i < data.getCampExit().size(); i++) {
             User user = User.getUserById(data.getCampExit().get(i).getDriver_user_Id());
-            myUsers.add(user);
+            if (user != null)
+                myUsers.add(user);
         }
         ArrayList<Truck> entranceTrucks = new ArrayList<>();
         ArrayList<Truck> newTrucks = new ArrayList<>();
         List<Truck> allTrucks = Truck.getAll();
-        for(int i =0; i<data.getCampEntrance().size(); i++){
-           for(int j =0; j<allTrucks.size(); j++){
-               if(allTrucks.get(j).getTruck_Id().equals(data.getCampEntrance().get(i).getTruck_Id()))
-                   entranceTrucks.add(i, allTrucks.get(j));
-           }
-
-        }
-        if(data.getCampExit()!=null && !data.getCampExit().isEmpty())
-        for(int i =0; i<data.getCampExit().size(); i++){
-            for(int j =0; j<allTrucks.size(); j++) {
-                if (allTrucks.get(j).getTruck_Id().equals(data.getCampExit().get(i).getTruck_Id()))
-                    newTrucks.add(allTrucks.get(j));
+        for (int i = 0; i < data.getCampEntrance().size(); i++) {
+            for (int j = 0; j < allTrucks.size(); j++) {
+                if (allTrucks.get(j).getTruck_Id().equals(data.getCampEntrance().get(i).getTruck_Id()))
+                    entranceTrucks.add(i, allTrucks.get(j));
             }
 
         }
-        ArrayList<Truck> myTrucks = new ArrayList<>(entranceTrucks.size()+newTrucks.size());
+        if (data.getCampExit() != null && !data.getCampExit().isEmpty())
+            for (int i = 0; i < data.getCampExit().size(); i++) {
+                for (int j = 0; j < allTrucks.size(); j++) {
+                    if (allTrucks.get(j).getTruck_Id().equals(data.getCampExit().get(i).getTruck_Id()))
+                        newTrucks.add(allTrucks.get(j));
+                }
+
+            }
+        ArrayList<Truck> myTrucks = new ArrayList<>(entranceTrucks.size() + newTrucks.size());
         myTrucks.addAll(entranceTrucks);
         myTrucks.addAll(newTrucks);
-        for(int i =0; i<data.getCampEntrance().size();i++) {
+        for (int i = 0; i < data.getCampEntrance().size(); i++) {
             for (int j = 0; j < data.getCampExit().size(); j++)
                 if (data.getCampEntrance().get(i).getEvent_Id().equals(data.getCampExit().get(j).getEntrance_Id())) {
                     data.getCampEntrance().get(i).setExited(true);
@@ -383,24 +386,24 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
                     data.getCampEntrance().get(i).setExitTime("0000-00-00 00:00:00");
                 }
 
-            for(int m =0; m<myUsers.size(); m++){
-                if(data.getCampEntrance().get(i).getDriver_user_Id().equals(myUsers.get(m).getUser_Id()))
-                    data.getCampEntrance().get(i).setDriverName(myUsers.get(m).getFirst_name_ar()+" "+myUsers.get(m).getLast_name_ar());
-                    data.getCampEntrance().get(i).setDriverUserNumber(myUsers.get(m).getUsername()+"");
+            for (int m = 0; m < myUsers.size(); m++) {
+                if (data.getCampEntrance().get(i).getDriver_user_Id().equals(myUsers.get(m).getUser_Id()))
+                    data.getCampEntrance().get(i).setDriverName(myUsers.get(m).getFirst_name_ar() + " " + myUsers.get(m).getLast_name_ar());
+                data.getCampEntrance().get(i).setDriverUserNumber(myUsers.get(m).getUsername() + "");
             }
 
-            for(int n=0; n<myTrucks.size(); n++){
-                if(data.getCampEntrance().get(i).getTruck_Id().equals(myTrucks.get(n).getTruck_Id()))
+            for (int n = 0; n < myTrucks.size(); n++) {
+                if (data.getCampEntrance().get(i).getTruck_Id().equals(myTrucks.get(n).getTruck_Id()))
                     data.getCampEntrance().get(i).setTruckNumber(myTrucks.get(n).getTruck_number());
-                    data.getCampEntrance().get(i).setTruckTotalVolume(myTrucks.get(n).getTruck_total_capacity());
+                data.getCampEntrance().get(i).setTruckTotalVolume(myTrucks.get(n).getTruck_total_capacity());
 
             }
         }
 
 
-        int size = data.getCampEntrance().size()-data.getCampExit().size();
-        header.setText(Html.fromHtml("<b>"+getString(R.string.inside_camp)+":</b> "+size+"&#160;"+"<b>"+getString(R.string.outside)+":</b> "+
-        data.getCampExit().size()));
+        int size = data.getCampEntrance().size() - data.getCampExit().size();
+        header.setText(Html.fromHtml("<b>" + getString(R.string.inside_camp) + ":</b> " + size + "&#160;" + "<b>" + getString(R.string.outside) + ":</b> " +
+                data.getCampExit().size()));
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false);
         final TruckAdapter truckAdapter = new TruckAdapter(getActivity(), data, myUsers, myTrucks);
         recyclerView.setAdapter(truckAdapter);
@@ -412,7 +415,7 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                 fragmentManager.beginTransaction().add(R.id.content_layout, ExitTruckFragment.newInstance(
                         event, truck, user, exit, truckAdapter.myChildren
-                ), ExitTruckFragment.class.getSimpleName()
+                        ), ExitTruckFragment.class.getSimpleName()
                 ).addToBackStack(ExitTruckFragment.class.getSimpleName()).commitAllowingStateLoss();
             }
         });
@@ -427,8 +430,8 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
             }
         });
         truckAdapter.sort();
-        if(getActivity()!=null)
-        ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
+        if (getActivity() != null)
+            ((MainActivity) getActivity()).progressBar.setVisibility(View.GONE);
     }
 
     private void setError(String message) {
@@ -437,16 +440,16 @@ public class TruckEntryExitFragment extends Fragment implements View.OnClickList
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()){
+        switch (view.getId()) {
             case R.id.add:
-                if(getActivity()!=null)
-                if (Methods.isAutomaticTimeEnabled(getActivity())) {
-                    ((MainActivity) getActivity()).setTitle("سجل دخول");
-                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                fragmentManager.beginTransaction().add(R.id.content_layout,new AddTruckFragment(),
-                        AddTruckFragment.class.getSimpleName()).addToBackStack(AddTruckFragment.class
-                .getSimpleName()).commitAllowingStateLoss();
-                } else ((MainActivity) getActivity()).displayAutomaticTimeEnable();
+                if (getActivity() != null)
+                    if (Methods.isAutomaticTimeEnabled(getActivity())) {
+                        ((MainActivity) getActivity()).setTitle("سجل دخول");
+                        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                        fragmentManager.beginTransaction().add(R.id.content_layout, new AddTruckFragment(),
+                                AddTruckFragment.class.getSimpleName()).addToBackStack(AddTruckFragment.class
+                                .getSimpleName()).commitAllowingStateLoss();
+                    } else ((MainActivity) getActivity()).displayAutomaticTimeEnable();
                 break;
             default:
                 break;

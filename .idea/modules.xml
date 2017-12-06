@@ -3,8 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/EastGate.iml" filepath="$PROJECT_DIR$/EastGate.iml" />
+      <module fileurl="file://C:\Users\Miriana\Documents\EastGate\EastGate.iml" filepath="C:\Users\Miriana\Documents\EastGate\EastGate.iml" />
       <module fileurl="file://C:\Programming\Freelance\UFOWApp\EastGate\EasyGate.iml" filepath="C:\Programming\Freelance\UFOWApp\EastGate\EasyGate.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://C:\Users\Miriana\Documents\EastGate\app\app.iml" filepath="C:\Users\Miriana\Documents\EastGate\app\app.iml" />
     </modules>
   </component>
 </project>
